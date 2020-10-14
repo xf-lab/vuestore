@@ -1,7 +1,7 @@
 <template>
     <v-layout align-start>
         <v-flex>
-            <v-toolbar flat color="white">
+            <v-toolbar color="white">
                 <v-toolbar-title>Categorías</v-toolbar-title>
                 <v-divider
                 class="mx-2"
@@ -25,19 +25,13 @@
                     <v-container grid-list-md>
                         <v-layout wrap>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
+                            <v-text-field v-model="editedItem.nombre"  label="Nombre"></v-text-field>
                         </v-flex>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
+                            <v-text-field v-model="editedItem.descripcion"  label="Descripcion"></v-text-field>
                         </v-flex>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
-                        </v-flex>
-                        <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
-                        </v-flex>
-                        <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.protein" label="Protein (g)"></v-text-field>
+                            <v-text-field v-model="editedItem.estado" label="Estado"></v-text-field>
                         </v-flex>
                         </v-layout>
                     </v-container>
@@ -45,82 +39,67 @@
         
                     <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="blue darken-1" flat @click="close">Cancelar</v-btn>
-                    <v-btn color="blue darken-1" flat @click="save">Guardar</v-btn>
+                    <v-btn color="blue darken-1" @click="close">Cancelar</v-btn>
+                    <v-btn color="blue darken-1" @click="save">Guardar</v-btn>
                     </v-card-actions>
                 </v-card>
                 </v-dialog>
             </v-toolbar>
             <v-data-table
                 :headers="headers"
-                :items="desserts"
+                :items="categorias"
                 :search="search"
                 class="elevation-1"
             >
-                <template v-slot:items="props">
-                <td>{{ props.item.name }}</td>
-                <td class="text-xs-right">{{ props.item.calories }}</td>
-                <td class="text-xs-right">{{ props.item.fat }}</td>
-                <td class="text-xs-right">{{ props.item.carbs }}</td>
-                <td class="text-xs-right">{{ props.item.protein }}</td>
-                <td class="justify-center layout px-0">
-                    <v-icon
-                    small
-                    class="mr-2"
-                    @click="editItem(props.item)"
-                    >
-                    edit
-                    </v-icon>
-                    <v-icon
-                    small
-                    @click="deleteItem(props.item)"
-                    >
-                    delete
-                    </v-icon>
-                </td>
+                <template v-slot:item="props">
+                    <tr>
+                        <td>
+                            <v-icon class="mr-2" @click="deleteItem(props.item)">delete</v-icon>
+                            <v-icon @click="editItem(props.item)">edit</v-icon>
+                        </td>
+                        <td> {{ props.item.nombre }}</td>
+                        <td>{{ props.item.descripcion }}</td>
+                        <td>
+                            <div v-if="props.item.estado">
+                                <span>Activo</span>
+                            </div>
+                            <div v-else>
+                                <span>Inactivo</span>
+                            </div>
+                        </td>
+                    </tr>
                 </template>
                 <template v-slot:no-data>
-                <v-btn color="primary" @click="initialize">Reset</v-btn>
+                    <v-btn color="primary" @click="listar()">Resetear</v-btn>
                 </template>
             </v-data-table>
         </v-flex>
     </v-layout>
 </template>
 <script>
+import axios from 'axios';
     export default {
         data(){
             return{
                 dialog: false,
                 search:'',
+                categorias: [],
                 headers: [
-                {
-                    text: 'Dessert (100g serving)',
-                    align: 'left',
-                    sortable: false,
-                    value: 'name'
-                },
-                { text: 'Calories', value: 'calories' },
-                { text: 'Fat (g)', value: 'fat' },
-                { text: 'Carbs (g)', value: 'carbs' },
-                { text: 'Protein (g)', value: 'protein' },
-                { text: 'Actions', value: 'name', sortable: false }
+                    { text: 'Opciones', value: '', sortable: false},
+                    { text: 'Nombre', value: 'nombre', sortable: true},
+                    { text: 'Descripción', value: 'descripcion', sortable: false},
+                    { text: 'Estado', value: 'estado', sortable: false},
                 ],
-                desserts: [],
                 editedIndex: -1,
-                editedItem: {
-                name: '',
-                calories: 0,
-                fat: 0,
-                carbs: 0,
-                protein: 0
-                },
-                defaultItem: {
-                name: '',
-                calories: 0,
-                fat: 0,
-                carbs: 0,
-                protein: 0
-                }
+                editedItem: [
+                    {
+                        _id: '',
+                        nombre: '',
+                        descripcion: '',
+                        estado: ''
+                    }
+                ],
+                
             }
         },
         computed: {
@@ -134,48 +113,54 @@
             }
         },
         created () {
-            this.initialize()
+            //this.initialize()
+            this.listar();
         },
         methods: {
-            initialize () {
-            this.desserts = [
-                {
-                name: 'Frozen Yogurt',
-                calories: 159,
-                fat: 6.0,
-                carbs: 24,
-                protein: 4.0
-                }
-            ]
+            listar () {
+                let me = this;
+                axios.get('categoria/list').then(function (response){
+                    //console.log(response);
+                    me.categorias = response.data;
+                }).catch(function(error){
+                    console.log(error);
+                });
             },
-
             editItem (item) {
-            this.editedIndex = this.desserts.indexOf(item)
-            this.editedItem = Object.assign({}, item)
-            this.dialog = true
+                this.editedIndex = this.categorias.indexOf(item)
+                this.editedItem = Object.assign({}, item)
+                this.dialog = true
             },
-
             deleteItem (item) {
-            const index = this.desserts.indexOf(item)
-            confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
+                const index = this.categorias.indexOf(item)
+                confirm('Are you sure you want to delete this item?') && this.categorias.splice(index, 1)
+                console.log(item);
             },
-
             close () {
-            this.dialog = false
-            setTimeout(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
-            }, 300)
+                this.dialog = false
+                setTimeout(() => {
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
+                }, 300)
             },
-
             save () {
-            if (this.editedIndex > -1) {
-                Object.assign(this.desserts[this.editedIndex], this.editedItem)
-            } else {
-                this.desserts.push(this.editedItem)
-            }
-            this.close()
+                if (this.editedIndex > -1) {
+                    // Edita Categoria
+                    console.log('Editar')
+                    Object.assign(this.categorias[this.editedIndex], this.editedItem)
+                } else {
+                    // Añade nueva Categoria
+                    console.log('Añadir Nuevo')
+                    this.categorias.push(this.editedItem)
+                }
+                this.close()
             }
         }
     }
 </script>
+
+<style scoped>
+.v-toolbar{
+    box-shadow: none !important;
+}
+</style>
