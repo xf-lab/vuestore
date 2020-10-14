@@ -28,7 +28,7 @@ export default new Router({
     },
     {
       path: "/categorias",
-      name: "categorias",
+      name: "categorías",
       component: () =>
         import(/* webpackChunkName: "about" */ "./views/Categoria.vue"),
       meta: {

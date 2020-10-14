@@ -17,3 +17,9 @@ export default {
   }
 };
 </script>
+
+<style>
+.menu-item{
+
+}
+</style>
