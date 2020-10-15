@@ -28,7 +28,7 @@
                             <v-text-field 
                                 v-model="editedItem.nombre"  
                                 label="Nombre"
-                                :rules="[campoRule]"
+                                :rules="[nombreRule]"
                             >
                             </v-text-field>
                         </v-flex>
@@ -36,7 +36,7 @@
                             <v-text-field 
                                 v-model="editedItem.descripcion"  
                                 label="Descripcion"
-                                :rules="[campoRule]"
+                                :rules="[descripcionRule]"
                             >
                             </v-text-field>
                         </v-flex>
@@ -48,6 +48,11 @@
                                 :rules="[estadoRule]"
                             >
                             </v-text-field>
+                        </v-flex>
+                        <v-flex xs12 sm12 md12 v-show="valida">
+                            <div class="red--text" v-for="v in validaMensaje" :key="v" v-text="v">
+
+                            </div>
                         </v-flex>
                         </v-layout>
                     </v-container>
@@ -97,9 +102,13 @@ import axios from 'axios';
     export default {
         data(){
             return{
-                campoRule: v  => {
-                    if ((v && v.length >= 3) || v == null ) return true;
-                    return 'Debe tener mínimo 3 caracteres';
+                nombreRule: v  => {
+                    if ((v && v.length >= 1 && v.length <= 50) || v == null ) return true;
+                    return 'Debe tener entre 1-50 caracteres';
+                },
+                descripcionRule: v  => {
+                    if ((v && v.length <= 255) || v == null || v == '' ) return true;
+                    return 'No debe exceder de 255 caracteres';
                 },
                 estadoRule: v  => {
                     if ( v == 0 || v == 1 || v == null ) return true;
@@ -123,6 +132,8 @@ import axios from 'axios';
                         estado: Number,
                     }
                 ],
+                valida:0,
+                validaMensaje:[],
                 
             }
         },
@@ -151,12 +162,48 @@ import axios from 'axios';
             },
             limpiar(){
                 this.editedItem = { _id: null , nombre: null, descripcion: null, estado: null };
+                this.valida=0;
+                this.validaMensaje=[];
+                this.editedIndex=-1;
+            },
+            validar(){
+                this.valida=0;
+                this.validaMensaje=[];
+                if( this.editedItem.nombre == null || this.editedItem.nombre.length<1 || this.editedItem.nombre.length>50){
+                    this.validaMensaje.push('El nombre de la categoría debe tener entre 1-50 caracteres.');
+                }
+                if(this.editedItem.descripcion == null) this.editedItem.descripcion = '';
+                if(this.editedItem.descripcion.length>255){
+                     this.validaMensaje.push('La descripción de la categoría no debe tener más de 255 caracteres.');
+                }
+                if(this.editedItem.estado == null || this.editedItem.estado == '') this.editedItem.estado = 1;
+                if(this.editedItem.estado < 0 || this.editedItem.estado > 1){
+                    this.validaMensaje.push('El estado debe ser 0 o 1');
+                }
+                if (this.validaMensaje.length){
+                    this.valida=1;
+                }
+                return this.valida;
             },
             guardar(){
                 let me = this;
-                 if (this.editedIndex > -1) {
+                if (this.validar()){
+                    return;
+                }
+                if (this.editedIndex > -1) {
                     // Edita Categoria
                     // Object.assign(this.categorias[this.editedIndex], this.editedItem)
+                    axios.put('categoria/update',{'_id':this.editedItem._id,'nombre':this.editedItem.nombre,'descripcion':this.editedItem.descripcion, 'estado': this.editedItem.estado})
+                        .then(function(response){
+                            console.log(response.data);
+                            me.editedItem = Object.assign({}, response.data );
+                            me.limpiar();
+                            me.close();
+                            me.listar();
+                        })
+                        .catch(function(error){
+                            console.log(error);
+                        });
                 } else {
                     // Guarda nueva Categoria
                     axios.post('categoria/add', {'nombre': this.editedItem.nombre, 'descripcion': this.editedItem.descripcion, 'estado': this.editedItem.estado})
