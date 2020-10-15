@@ -25,13 +25,29 @@
                     <v-container grid-list-md>
                         <v-layout wrap>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.nombre"  label="Nombre"></v-text-field>
+                            <v-text-field 
+                                v-model="editedItem.nombre"  
+                                label="Nombre"
+                                :rules="[campoRule]"
+                            >
+                            </v-text-field>
                         </v-flex>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.descripcion"  label="Descripcion"></v-text-field>
+                            <v-text-field 
+                                v-model="editedItem.descripcion"  
+                                label="Descripcion"
+                                :rules="[campoRule]"
+                            >
+                            </v-text-field>
                         </v-flex>
                         <v-flex xs12 sm6 md4>
-                            <v-text-field v-model="editedItem.estado" label="Estado"></v-text-field>
+                            <v-text-field 
+                                v-model.number="editedItem.estado" 
+                                label="Estado" 
+                                type="number"
+                                :rules="[estadoRule]"
+                            >
+                            </v-text-field>
                         </v-flex>
                         </v-layout>
                     </v-container>
@@ -40,7 +56,7 @@
                     <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="blue darken-1" @click="close">Cancelar</v-btn>
-                    <v-btn color="blue darken-1" @click="save">Guardar</v-btn>
+                    <v-btn color="blue darken-1" @click="guardar">Guardar</v-btn>
                     </v-card-actions>
                 </v-card>
                 </v-dialog>
@@ -60,10 +76,10 @@
                         <td> {{ props.item.nombre }}</td>
                         <td>{{ props.item.descripcion }}</td>
                         <td>
-                            <div v-if="props.item.estado">
+                            <div v-if="props.item.estado === 1">
                                 <span>Activo</span>
                             </div>
-                            <div v-else>
+                            <div v-if="props.item.estado === 0">
                                 <span>Inactivo</span>
                             </div>
                         </td>
@@ -81,6 +97,14 @@ import axios from 'axios';
     export default {
         data(){
             return{
+                campoRule: v  => {
+                    if ((v && v.length >= 3) || v == null ) return true;
+                    return 'Debe tener mínimo 3 caracteres';
+                },
+                estadoRule: v  => {
+                    if ( v == 0 || v == 1 || v == null ) return true;
+                    return 'Estado tiene que ser 1 o 0';
+                },
                 dialog: false,
                 search:'',
                 categorias: [],
@@ -96,7 +120,7 @@ import axios from 'axios';
                         _id: '',
                         nombre: '',
                         descripcion: '',
-                        estado: ''
+                        estado: Number,
                     }
                 ],
                 
@@ -104,7 +128,7 @@ import axios from 'axios';
         },
         computed: {
             formTitle () {
-            return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+            return this.editedIndex === -1 ? 'Nuevo Registro' : 'Editar Registro'
             }
         },
         watch: {
@@ -113,22 +137,44 @@ import axios from 'axios';
             }
         },
         created () {
-            //this.initialize()
             this.listar();
         },
         methods: {
             listar () {
                 let me = this;
                 axios.get('categoria/list').then(function (response){
-                    //console.log(response);
+                    console.log(response);
                     me.categorias = response.data;
                 }).catch(function(error){
                     console.log(error);
                 });
             },
+            limpiar(){
+                this.editedItem = { _id: null , nombre: null, descripcion: null, estado: null };
+            },
+            guardar(){
+                let me = this;
+                 if (this.editedIndex > -1) {
+                    // Edita Categoria
+                    // Object.assign(this.categorias[this.editedIndex], this.editedItem)
+                } else {
+                    // Guarda nueva Categoria
+                    axios.post('categoria/add', {'nombre': this.editedItem.nombre, 'descripcion': this.editedItem.descripcion, 'estado': this.editedItem.estado})
+                        .then( function(response){
+                            console.log(response.data);
+                            me.editedItem = Object.assign({}, response.data );
+                            me.limpiar();
+                            me.close();
+                            me.listar();
+                        }).catch(function(error){
+                            console.log(error);
+                        });
+                }
+            },
             editItem (item) {
                 this.editedIndex = this.categorias.indexOf(item)
                 this.editedItem = Object.assign({}, item)
+                console.log(this.editedItem)
                 this.dialog = true
             },
             deleteItem (item) {
@@ -138,22 +184,6 @@ import axios from 'axios';
             },
             close () {
                 this.dialog = false
-                setTimeout(() => {
-                    this.editedItem = Object.assign({}, this.defaultItem)
-                    this.editedIndex = -1
-                }, 300)
-            },
-            save () {
-                if (this.editedIndex > -1) {
-                    // Edita Categoria
-                    console.log('Editar')
-                    Object.assign(this.categorias[this.editedIndex], this.editedItem)
-                } else {
-                    // Añade nueva Categoria
-                    console.log('Añadir Nuevo')
-                    this.categorias.push(this.editedItem)
-                }
-                this.close()
             }
         }
     }
