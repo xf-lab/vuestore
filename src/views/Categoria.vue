@@ -13,57 +13,85 @@
                 label="Búsqueda" single-line hide-details></v-text-field>
                 <v-spacer></v-spacer>
                 <v-dialog v-model="dialog" max-width="500px">
-                <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on">Nuevo</v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                    <span class="headline">{{ formTitle }}</span>
-                    </v-card-title>
-        
-                    <v-card-text>
-                    <v-container grid-list-md>
-                        <v-layout wrap>
-                        <v-flex xs12 sm6 md4>
-                            <v-text-field 
-                                v-model="editedItem.nombre"  
-                                label="Nombre"
-                                :rules="[nombreRule]"
-                            >
-                            </v-text-field>
-                        </v-flex>
-                        <v-flex xs12 sm6 md4>
-                            <v-text-field 
-                                v-model="editedItem.descripcion"  
-                                label="Descripcion"
-                                :rules="[descripcionRule]"
-                            >
-                            </v-text-field>
-                        </v-flex>
-                        <v-flex xs12 sm6 md4>
-                            <v-text-field 
-                                v-model.number="editedItem.estado" 
-                                label="Estado" 
-                                type="number"
-                                :rules="[estadoRule]"
-                            >
-                            </v-text-field>
-                        </v-flex>
-                        <v-flex xs12 sm12 md12 v-show="valida">
-                            <div class="red--text" v-for="v in validaMensaje" :key="v" v-text="v">
+                    <template v-slot:activator="{ on }">
+                        <v-btn color="primary" dark class="mb-2" v-on="on">Nuevo</v-btn>
+                    </template>
+                    <v-card>
+                        <v-card-title>
+                        <span class="headline">{{ formTitle }}</span>
+                        </v-card-title>
+            
+                        <v-card-text>
+                        <v-container grid-list-md>
+                            <v-layout wrap>
+                            <v-flex xs12 sm6 md4>
+                                <v-text-field 
+                                    v-model="editedItem.nombre"  
+                                    label="Nombre"
+                                    :rules="[nombreRule]"
+                                >
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm6 md4>
+                                <v-text-field 
+                                    v-model="editedItem.descripcion"  
+                                    label="Descripcion"
+                                    :rules="[descripcionRule]"
+                                >
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm6 md4>
+                                <v-text-field 
+                                    v-model.number="editedItem.estado" 
+                                    label="Estado" 
+                                    type="number"
+                                    :rules="[estadoRule]"
+                                >
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm12 md12 v-show="valida">
+                                <div class="red--text" v-for="v in validaMensaje" :key="v" v-text="v">
 
-                            </div>
-                        </v-flex>
-                        </v-layout>
-                    </v-container>
-                    </v-card-text>
-        
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="blue darken-1" @click="close">Cancelar</v-btn>
-                    <v-btn color="blue darken-1" @click="guardar">Guardar</v-btn>
-                    </v-card-actions>
-                </v-card>
+                                </div>
+                            </v-flex>
+                            </v-layout>
+                        </v-container>
+                        </v-card-text>
+            
+                        <v-card-actions>
+                        <v-spacer></v-spacer>
+                            <v-btn color="blue darken-1" @click="close">Cancelar</v-btn>
+                            <v-btn color="blue darken-1" @click="guardar">Guardar</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog v-model="adModal" max-width="290">
+                    <v-card>
+                        <v-card-title class="headline" v-if="adAction==1">
+                            Activar Registro
+                        </v-card-title>
+                        <v-card-title class="headline" v-if="adAction==2">
+                            Desactivar Registro
+                        </v-card-title>
+                        <v-card-text>
+                            ¿Está seguro de que quieres 
+                            <span v-if="adAction==1">activar</span>
+                            <span v-if="adAction==2">desactivar</span>
+                             el registro {{editedItem.nombre}} ?
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn @click="cerrarModalActDes" color="green darken-1">
+                                Cancelar
+                            </v-btn>
+                            <v-btn v-if="adAction == 1" @click="activarRegistro" color="orange darken-4">
+                                Activar
+                            </v-btn>
+                            <v-btn v-if="adAction == 2" @click="desactivarRegistro" color="orange darken-4">
+                                Desactivar
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
                 </v-dialog>
             </v-toolbar>
             <v-data-table
@@ -75,8 +103,27 @@
                 <template v-slot:item="props">
                     <tr>
                         <td>
-                            <v-icon class="mr-2" @click="deleteItem(props.item)">delete</v-icon>
-                            <v-icon @click="editItem(props.item)">edit</v-icon>
+                            <v-icon 
+                                @click="editItem(props.item)"
+                                class="mr-2"
+                            >edit
+                            </v-icon>
+                            <template v-if="props.item.estado">
+                                <v-icon
+                                small
+                                @click="activarDesactivarMostrar(2,props.item)"
+                                >
+                                block
+                                </v-icon>
+                            </template>
+                            <template v-else>
+                                <v-icon
+                                small
+                                @click="activarDesactivarMostrar(1,props.item)"
+                                >
+                                check
+                                </v-icon>
+                            </template>
                         </td>
                         <td> {{ props.item.nombre }}</td>
                         <td>{{ props.item.descripcion }}</td>
@@ -134,6 +181,10 @@ import axios from 'axios';
                 ],
                 valida:0,
                 validaMensaje:[],
+                adModal:0,
+                adAction:0,
+                adNombre:'',
+                adId:''
                 
             }
         },
@@ -154,7 +205,7 @@ import axios from 'axios';
             listar () {
                 let me = this;
                 axios.get('categoria/list').then(function (response){
-                    console.log(response);
+                    //console.log(response);
                     me.categorias = response.data;
                 }).catch(function(error){
                     console.log(error);
@@ -224,10 +275,48 @@ import axios from 'axios';
                 console.log(this.editedItem)
                 this.dialog = true
             },
-            deleteItem (item) {
-                const index = this.categorias.indexOf(item)
-                confirm('Are you sure you want to delete this item?') && this.categorias.splice(index, 1)
-                console.log(item);
+            activarDesactivarMostrar(cod, item){
+                //console.log(cod);
+                //console.log(item);
+                this.adAction = cod ; 
+                this.adModal = 1;
+                this.adNombre = item.nombre;
+                this.adId = item._id;
+            },
+            activarRegistro(){
+                    let me = this;
+                    axios.put('categoria/activate', {'_id':this.adId})
+                        .then(function(response){
+                        //console.log(response.data);
+                        me.editedItem = Object.assign({}, response.data );
+                        me.listar();
+                        me.cerrarModalActDes();
+                        me.adAction = 0;
+                        me.adNombre = '';
+                        me.adId = ''
+                    })
+                    .catch(function(error){
+                        console.log(error);
+                    });
+            },
+            desactivarRegistro(){
+                    let me = this;
+                    axios.put('categoria/deactivate', {'_id':this.adId})
+                        .then(function(response){
+                        //console.log(response.data);
+                        me.editedItem = Object.assign({}, response.data );
+                        me.listar();
+                        me.cerrarModalActDes();
+                        me.adAction = 0;
+                        me.adNombre = '';
+                        me.adId = ''
+                    })
+                    .catch(function(error){
+                        console.log(error);
+                    });
+            },
+            cerrarModalActDes(){
+                this.adModal = 0 ;
             },
             close () {
                 this.dialog = false
