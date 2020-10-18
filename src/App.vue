@@ -5,33 +5,33 @@
       color="white"
       flat
     >
-      <v-container class="py-0 fill-height">
-        <v-avatar
-          class="mr-10"
-          color="grey darken-1"
-          size="32"
-        ></v-avatar>
+        <v-container class="py-0 fill-height">
+          <v-avatar
+            class="mr-10"
+            color="grey darken-1"
+            size="32"
+          ></v-avatar>
 
-        <v-btn
-          v-for="link in links"
-          :key="link"
-          text
-        >
-          {{ link }}
-        </v-btn>
+          <v-btn
+            v-for="link in links"
+            :key="link"
+            text
+          >
+            {{ link }}
+          </v-btn>
 
-        <v-spacer></v-spacer>
+          <v-spacer></v-spacer>
 
-        <v-responsive max-width="260">
-          <v-text-field
-            dense
-            flat
-            hide-details
-            rounded
-            solo-inverted
-          ></v-text-field>
-        </v-responsive>
-      </v-container>
+          <v-responsive max-width="260">
+            <v-text-field
+              dense
+              flat
+              hide-details
+              rounded
+              solo-inverted
+            ></v-text-field>
+          </v-responsive>
+        </v-container>
     </v-app-bar>
 
     <v-main class="grey lighten-3">
@@ -39,18 +39,7 @@
         <v-row>
           <v-col cols="2">
             <v-sheet rounded="lg">
-              <v-list color="transparent">
-                <!-- <v-list-item 
-                  v-for="n in opcionesMenuLateral"
-                  :key="n"
-                  link
-                >
-                  <v-list-item-content :to="{name: 'n'}">
-                    <v-list-item-title>
-                      {{ n }}
-                    </v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item> -->
+              <v-list color="transparent" v-if="logueado">
 
                 <navbar></navbar>
 
@@ -94,6 +83,7 @@ import Navbar from './components/Navbar.vue';
 
   export default {
     data: () => ({
+      drawer: true,
       links: [
         'Dashboard',
         'Messages',
@@ -107,6 +97,28 @@ import Navbar from './components/Navbar.vue';
     }),
     components: {
       Navbar
+    },
+    computed:{
+      logueado(){
+        return this.$store.state.usuario;
+      },
+      esAdministrador(){
+        return this.$store.state.usuario && this.$store.state.usuario.rol == 'Administrador';
+      },
+      esAlmacenero(){
+        return this.$store.state.usuario && this.$store.state.usuario.rol == 'Almacenero';
+      },
+      esVendedor(){
+        return this.$store.state.usuario && this.$store.state.usuario.rol == 'Vendedor';
+      }
+    },
+    created(){
+      this.$store.dispatch("autoLogin");
+    },
+    methods:{
+      salir(){
+        this.$store.dispatch("salir");
+      }
     }
   }
 </script>
