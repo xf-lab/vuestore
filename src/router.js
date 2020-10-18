@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import store from './store'
-import Login from './components/Login.vue'
-//import Home from './views/Home.vue'
-//import Categoria from './components/Categoria.vue'
+import Login from './views/Login.vue'
+import Home from './views/Home.vue'
+import Categoria from './views/Categoria.vue'
 
 Vue.use(Router)
 
@@ -22,8 +22,7 @@ var router = new Router({
     {
       path: "/home",
       name: "home",
-      component: () =>
-        import("./views/Home.vue"),
+      component: Home,
       meta: {
         visible: true,
         administrador: true,
@@ -34,8 +33,7 @@ var router = new Router({
     {
       path: "/categorias",
       name: "categorías",
-      component: () =>
-        import("./views/Categoria.vue"),
+      component: Categoria,
       meta: {
         libre: true,
         visible: true
@@ -69,7 +67,6 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else{
-    //next({name: 'login'});
     router.push('/login' )
       .catch(error => {
         console.info(error.message)

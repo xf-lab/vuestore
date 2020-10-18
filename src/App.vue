@@ -31,6 +31,22 @@
               solo-inverted
             ></v-text-field>
           </v-responsive>
+
+          <v-spacer></v-spacer>
+
+          <v-btn icon v-if="logueado" @click="salir">
+            <v-icon >
+              logout
+            </v-icon>
+            Salir
+          </v-btn>
+          <v-btn icon v-else :to="{name: 'login'}">
+            <v-icon>
+              apps
+            </v-icon>
+            Login
+          </v-btn>
+
         </v-container>
     </v-app-bar>
 

@@ -10,6 +10,9 @@
                 </v-text-field>
                 <v-text-field v-model="password" type="password" color="accent" label="Password" required>
                 </v-text-field>
+                <v-flex class="red--text" v-if="errorM">
+                  {{errorM}}
+                </v-flex>
             </v-card-text>
             <v-card-actions class="px-3 pb-3">
                 <v-flex text-xs-right>
@@ -27,10 +30,12 @@ import axios from 'axios';
     
     data: () => ({
       email: '',
-      password: ''
+      password: '',
+      errorM: null
     }),
     methods: {
         ingresar(){
+            let me = this;
             axios.post('usuario/login',{email: this.email, password: this.password})
                 .then(respuesta => {
                     return respuesta.data;
@@ -42,7 +47,15 @@ import axios from 'axios';
                     this.$router.push({name:'home'});
                 })                   
                 .catch(function(error){
-                    console.log(error);
+                    console.log(error.response.status);
+                    me.errorM = null;
+                    if(error.response.status==404){
+                      me.errorM="No existe el usuario o las credenciales son incorrectas";
+                      console.log(me.errorM);
+                    }else{
+                      me.errorM="Conexión fallida con el servidor";
+                      console.log(me.errorM);
+                    }
                 });
         }
     }
