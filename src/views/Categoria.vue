@@ -204,7 +204,9 @@ import axios from 'axios';
         methods: {
             listar () {
                 let me = this;
-                axios.get('categoria/list').then(function (response){
+                let header = { "Token" : this.$store.state.token};
+                let configuracion = {headers: header};
+                axios.get('categoria/list', configuracion).then(function (response){
                     //console.log(response);
                     me.categorias = response.data;
                 }).catch(function(error){
@@ -238,13 +240,15 @@ import axios from 'axios';
             },
             guardar(){
                 let me = this;
+                let header = { "Token" : this.$store.state.token};
+                let configuracion = {headers: header};
                 if (this.validar()){
                     return;
                 }
                 if (this.editedIndex > -1) {
                     // Edita Categoria
                     // Object.assign(this.categorias[this.editedIndex], this.editedItem)
-                    axios.put('categoria/update',{'_id':this.editedItem._id,'nombre':this.editedItem.nombre,'descripcion':this.editedItem.descripcion, 'estado': this.editedItem.estado})
+                    axios.put('categoria/update',{'_id':this.editedItem._id,'nombre':this.editedItem.nombre,'descripcion':this.editedItem.descripcion, 'estado': this.editedItem.estado},configuracion)
                         .then(function(response){
                             console.log(response.data);
                             me.editedItem = Object.assign({}, response.data );
@@ -257,7 +261,7 @@ import axios from 'axios';
                         });
                 } else {
                     // Guarda nueva Categoria
-                    axios.post('categoria/add', {'nombre': this.editedItem.nombre, 'descripcion': this.editedItem.descripcion, 'estado': this.editedItem.estado})
+                    axios.post('categoria/add', {'nombre': this.editedItem.nombre, 'descripcion': this.editedItem.descripcion, 'estado': this.editedItem.estado},configuracion)
                         .then( function(response){
                             console.log(response.data);
                             me.editedItem = Object.assign({}, response.data );
@@ -285,7 +289,9 @@ import axios from 'axios';
             },
             activarRegistro(){
                     let me = this;
-                    axios.put('categoria/activate', {'_id':this.adId})
+                    let header = { "Token" : this.$store.state.token};
+                    let configuracion = {headers: header};
+                    axios.put('categoria/activate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
@@ -301,7 +307,9 @@ import axios from 'axios';
             },
             desactivarRegistro(){
                     let me = this;
-                    axios.put('categoria/deactivate', {'_id':this.adId})
+                    let header = { "Token" : this.$store.state.token};
+                    let configuracion = {headers: header};
+                    axios.put('categoria/deactivate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
