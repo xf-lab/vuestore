@@ -4,6 +4,7 @@ import store from './store'
 import Login from './views/Login.vue'
 import Home from './views/Home.vue'
 import Categoria from './views/Categoria.vue'
+import Usuario from './views/Usuario.vue'
 
 Vue.use(Router)
 
@@ -37,6 +38,16 @@ var router = new Router({
       meta: {
         libre: true,
         visible: true
+      }
+    },
+    {
+      path: "/usuarios",
+      name: "usuarios",
+      component: Usuario,
+      meta: {
+        libre: true,
+        visible: true,
+        administrador: true,
       }
     },
     {
