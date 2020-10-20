@@ -35,7 +35,7 @@
                             <v-flex xs12 sm6 md6>
                                 <v-select 
                                     v-model="editedItem.rol"
-                                    :items="editedItem[0].roles"
+                                    :items="roles"
                                     label="Rol"
                                     :rules="[rolRule]"
                                 >
@@ -44,7 +44,7 @@
                             <v-flex xs12 sm6 md6>
                                 <v-select 
                                     v-model="editedItem.tipo_documento"
-                                    :items="editedItem[0].documentos"
+                                    :items="documentos"
                                     label="Tipo de Documento"
                                     :rules="[docRule]"
                                 >
@@ -119,7 +119,7 @@
                             ¿Está seguro de que quieres 
                             <span v-if="adAction==1">activar</span>
                             <span v-if="adAction==2">desactivar</span>
-                             el registro {{editedItem.nombre}} ?
+                             el usuario {{adNombre}} ?
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
@@ -240,15 +240,15 @@ import axios from 'axios';
                         _id: '',
                         nombre:'',
                         rol: '',
-                        roles: ['Administrador', 'Almacenero', 'Vendedor'],
                         tipo_documento: '',
-                        documentos: ['DNI','NIF'],
                         direccion: '',
                         email: '',
                         telefono: '',
                         password: ''
                     }
                 ],
+                roles: ['Administrador', 'Almacenero', 'Vendedor'],
+                documentos: ['DNI','NIF'],
                 valida:0,
                 validaMensaje:[],
                 adModal:0,
@@ -288,10 +288,8 @@ import axios from 'axios';
                     _id:'', 
                     nombre:'',
                     rol:'',
-                    roles: ['Administrador', 'Almacenero', 'Vendedor'],
                     num_documento:'',
                     tipo_documento: '',
-                    documentos: ['DNI','NIF'],
                     direccion:'',
                     telefono:'',
                     email:'',
@@ -344,15 +342,27 @@ import axios from 'axios';
                     return;
                 }
                 if (this.editedIndex > -1) {
-                    // Edita Categoria
-                    // Object.assign(this.categorias[this.editedIndex], this.editedItem)
-                    axios.put('categoria/update',{'_id':this.editedItem._id,'nombre':this.editedItem.nombre,'descripcion':this.editedItem.descripcion, 'estado': this.editedItem.estado},configuracion)
-                        .then(function(response){
-                            console.log(response.data);
-                            me.editedItem = Object.assign({}, response.data );
+                    // Edita Usuario
+                    axios.put('usuario/update',
+                        {
+                            '_id':this.editedItem._id,
+                            'rol':this.editedItem.rol,
+                            'nombre':this.editedItem.nombre,
+                            'tipo_documento':this.editedItem.tipo_documento,
+                            'num_documento':this.editedItem.num_documento,
+                            'direccion':this.editedItem.direccion,
+                            'telefono': this.editedItem.telefono,
+                            'email':this.editedItem.email,
+                            'password':this.editedItem.password
+                        },
+                        configuracion)
+                        .then( response => {
+                            //console.log(response.data);
+                            //me.editedItem = Object.assign({}, response.data );
                             me.limpiar();
                             me.close();
                             me.listar();
+                            return response;
                         })
                         .catch(function(error){
                             console.log(error);
@@ -372,21 +382,18 @@ import axios from 'axios';
                                 'password':this.editedItem.password
                             }
                             ,configuracion)
-                        .then( function(response){
-                            //console.log(response.data);
-                            me.editedItem = Object.assign(me.editedItem, response.data );
-                            console.log(me.editedItem);
+                        .then( response => {
                             me.limpiar();
                             me.close();
                             me.listar();
-                            console.log(me.editedItem);
+                            return response;
                         }).catch(function(error){
                             console.log(error);
                         });
                 }
             },
             editItem (item) {
-                this.editedIndex = this.categorias.indexOf(item)
+                this.editedIndex = this.usuarios.indexOf(item)
                 this.editedItem = Object.assign({}, item)
                 console.log(this.editedItem)
                 this.dialog = true
@@ -403,7 +410,7 @@ import axios from 'axios';
                     let me = this;
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
-                    axios.put('categoria/activate', {'_id':this.adId}, configuracion)
+                    axios.put('usuario/activate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
@@ -421,7 +428,7 @@ import axios from 'axios';
                     let me = this;
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
-                    axios.put('categoria/deactivate', {'_id':this.adId}, configuracion)
+                    axios.put('usuario/deactivate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
@@ -439,6 +446,7 @@ import axios from 'axios';
                 this.adModal = 0 ;
             },
             close () {
+                this.limpiar();
                 this.dialog = false
             }
         }
