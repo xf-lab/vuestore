@@ -5,6 +5,7 @@ import Login from './views/Login.vue'
 import Home from './views/Home.vue'
 import Categoria from './views/Categoria.vue'
 import Usuario from './views/Usuario.vue'
+import Articulo from './views/Articulo.vue'
 
 Vue.use(Router)
 
@@ -35,6 +36,15 @@ var router = new Router({
       path: "/categorias",
       name: "categorías",
       component: Categoria,
+      meta: {
+        libre: true,
+        visible: true
+      }
+    },
+    {
+      path: "/articulo",
+      name: "articulos",
+      component: Articulo,
       meta: {
         libre: true,
         visible: true
