@@ -2,7 +2,7 @@
     <v-layout align-start>
         <v-flex>
             <v-toolbar color="white">
-                <v-toolbar-title>Clientes</v-toolbar-title>
+                <v-toolbar-title>Proveedores</v-toolbar-title>
                 <v-divider
                 class="mx-2"
                 inset
@@ -219,7 +219,7 @@ import axios from 'axios';
                         email: '',
                         telefono: ''
                     },
-                tipo_persona: 'Cliente',
+                tipo_persona: 'Proveedor',
                 documentos: ['DNI','NIF'],
                 valida:0,
                 validaMensaje:[],
@@ -232,7 +232,7 @@ import axios from 'axios';
         },
         computed: {
             formTitle () {
-                return this.editedIndex === -1 ? 'Nuevo Cliente' : 'Editar Cliente'
+                return this.editedIndex === -1 ? 'Nuevo Proveedor' : 'Editar Proveedor'
             }
         },
         watch: {
@@ -248,12 +248,13 @@ import axios from 'axios';
                 let me = this;
                 let header = { "Token" : this.$store.state.token};
                 let configuracion = {headers: header};
-                axios.get('persona/listClientes', configuracion).then(function (response){
+                axios.get('persona/listProveedores', configuracion).then(function (response){
                     //console.log(response);
                     me.personas = response.data;
                 }).catch(function(error){
                     console.log(error);
                 });
+                console.log(this.editedItem);
             },
             limpiar(){
                 this.editedItem = [{ 
@@ -371,8 +372,10 @@ import axios from 'axios';
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
                     axios.put('persona/activate', {'_id':this.adId}, configuracion)
-                        .then(response => {
-                        me.limpiar();  
+                        .then( response => {
+                        //console.log(response.data);
+                        //me.editedItem = Object.assign({}, response.data );
+                        me.limpiar();
                         me.listar();
                         me.cerrarModalActDes();
                         me.adAction = 0;
@@ -389,13 +392,15 @@ import axios from 'axios';
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
                     axios.put('persona/deactivate', {'_id':this.adId}, configuracion)
-                        .then(response => {
-                        me.limpiar();    
+                        .then( response => {
+                        //console.log(response.data);
+                        //me.editedItem = Object.assign({}, response.data );
+                        me.limpiar();
                         me.listar();
                         me.cerrarModalActDes();
                         me.adAction = 0;
                         me.adNombre = '';
-                        me.adId = ''
+                        me.adId = '';
                         return response;
                     })
                     .catch(function(error){
