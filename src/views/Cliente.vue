@@ -2,7 +2,7 @@
     <v-layout align-start>
         <v-flex>
             <v-toolbar color="white">
-                <v-toolbar-title>Usuarios</v-toolbar-title>
+                <v-toolbar-title>Clientes</v-toolbar-title>
                 <v-divider
                 class="mx-2"
                 inset
@@ -31,15 +31,6 @@
                                     :rules="[nombreRule]"
                                 >
                                 </v-text-field>
-                            </v-flex>
-                            <v-flex xs12 sm6 md6>
-                                <v-select 
-                                    v-model="editedItem.rol"
-                                    :items="roles"
-                                    label="Rol"
-                                    :rules="[rolRule]"
-                                >
-                                </v-select>
                             </v-flex>
                             <v-flex xs12 sm6 md6>
                                 <v-select 
@@ -82,15 +73,6 @@
                                 >
                                 </v-text-field>
                             </v-flex>
-                            <v-flex xs12 sm6 md6>
-                                <v-text-field 
-                                    type="password"
-                                    v-model="editedItem.password" 
-                                    label="Password" 
-                                    :rules="[passwordRule]"
-                                >
-                                </v-text-field>
-                            </v-flex>
                             <v-flex xs12 sm12 md12 v-show="valida">
                                 <div class="red--text" v-for="v in validaMensaje" :key="v" v-text="v">
 
@@ -110,16 +92,16 @@
                 <v-dialog v-model="adModal" max-width="290">
                     <v-card>
                         <v-card-title class="headline" v-if="adAction==1">
-                            Activar Registro
+                            Activar Cliente
                         </v-card-title>
                         <v-card-title class="headline" v-if="adAction==2">
-                            Desactivar Registro
+                            Desactivar Cliente
                         </v-card-title>
                         <v-card-text>
                             ¿Está seguro de que quieres 
                             <span v-if="adAction==1">activar</span>
                             <span v-if="adAction==2">desactivar</span>
-                             el usuario {{adNombre}} ?
+                             el cliente {{adNombre}} ?
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
@@ -138,7 +120,7 @@
             </v-toolbar>
             <v-data-table
                 :headers="headers"
-                :items="usuarios"
+                :items="personas"
                 :search="search"
                 class="elevation-1"
             >
@@ -168,7 +150,7 @@
                             </template>
                         </td>
                         <td> {{ props.item.nombre }}</td>
-                        <td> {{ props.item.rol }}</td>
+                        <td> {{ props.item.tipo_persona }}</td>
                         <td> {{ props.item.tipo_documento }}</td>
                         <td> {{ props.item.num_documento }}</td>
                         <td> {{ props.item.direccion }}</td>
@@ -200,10 +182,6 @@ import axios from 'axios';
                     if ( v == null || (v && v.length >= 1 && v.length <= 50) ) return true;
                     return 'Debe tener entre 1-50 caracteres';
                 },
-                rolRule: v  => {
-                    if ( v == null || (v && v.length >= 1 && v.length <= 30) ) return true;
-                    return 'Debe tener entre 1-50 caracteres';
-                },
                 docRule: v  => {
                     if ( v == null || v.length <= 20 ) return true;
                     return 'Debe tener máximo 20 caracteres';
@@ -216,17 +194,13 @@ import axios from 'axios';
                     if (v == null || (v && v.length >= 1 && v.length <= 50) ) return true;
                     return 'Es requerido (MAX: 50 caracteres)';
                 },
-                passwordRule: v  => {
-                    if ( v == null || (v && v.length >= 1 && v.length <= 64) ) return true;
-                    return 'Es requerido (MAX: 64 caracteres)';
-                },
                 dialog: false,
                 search:'',
-                usuarios: [],
+                personas: [],
                 headers: [
                     { text: 'Opciones', value: '', sortable: true},
                     { text: 'Nombre', value: 'nombre', sortable: true},
-                    { text: 'Rol', value: 'rol', sortable: true},
+                    { text: 'Tipo Persona', value: 'tipo_persona', sortable: true},
                     { text: 'Tipo Documento', value: 'tipo_documento', sortable: true},
                     { text: 'Num Documento', value: 'num_documento', sortable: false},
                     { text: 'Dirección', value: 'direccion', sortable: false},
@@ -235,20 +209,17 @@ import axios from 'axios';
                     { text: 'Estado', value: 'estado', sortable: false},
                 ],
                 editedIndex: -1,
-                editedItem: [
+                editedItem:
                     {
                         _id: '',
                         nombre:'',
-                        rol: '',
+                        tipo_persona: 'Cliente',
                         tipo_documento: '',
                         num_documento: '',
                         direccion: '',
                         email: '',
-                        telefono: '',
-                        password: ''
-                    }
-                ],
-                roles: ['Administrador', 'Almacenero', 'Vendedor'],
+                        telefono: ''
+                    },
                 documentos: ['DNI','NIF'],
                 valida:0,
                 validaMensaje:[],
@@ -261,7 +232,7 @@ import axios from 'axios';
         },
         computed: {
             formTitle () {
-                return this.editedIndex === -1 ? 'Nuevo Usuario' : 'Editar Usuario'
+                return this.editedIndex === -1 ? 'Nuevo Cliente' : 'Editar Cliente'
             }
         },
         watch: {
@@ -277,24 +248,23 @@ import axios from 'axios';
                 let me = this;
                 let header = { "Token" : this.$store.state.token};
                 let configuracion = {headers: header};
-                axios.get('usuario/list', configuracion).then(function (response){
+                axios.get('persona/listClientes', configuracion).then(function (response){
                     //console.log(response);
-                    me.usuarios = response.data;
+                    me.personas = response.data;
                 }).catch(function(error){
                     console.log(error);
                 });
             },
             limpiar(){
                 this.editedItem = [{ 
-                    _id:'', 
+                    _id: '',
                     nombre:'',
-                    rol:'',
+                    tipo_persona:'Cliente',
                     num_documento:'',
                     tipo_documento: '',
                     direccion:'',
                     telefono:'',
-                    email:'',
-                    password:'',
+                    email:''
                 }];
                 this.valida=0;
                 this.validaMensaje=[];
@@ -303,9 +273,6 @@ import axios from 'axios';
             validar(){
                 this.valida=0;
                 this.validaMensaje=[];
-                if(!this.editedItem.rol){
-                    this.validaMensaje.push('Seleccione un rol.');
-                }
                 if(this.editedItem.nombre == null || this.editedItem.nombre.length<1 || this.editedItem.nombre.length>50){
                     this.validaMensaje.push('El nombre del usuario debe tener entre 1-50 caracteres.');
                 }
@@ -324,11 +291,10 @@ import axios from 'axios';
                         this.validaMensaje.push('El teléfono no debe tener más de 20 caracteres.');
                     }
                 }
-                if(this.editedItem.email == null || this.editedItem.email.length<1 || this.editedItem.nombre.length>50){
-                    this.validaMensaje.push('El email del usuario debe tener entre 1-50 caracteres.');
-                }
-                if(this.editedItem.password == null || this.editedItem.password.length<1 || this.editedItem.nombre.length>64){
-                    this.validaMensaje.push('El password del usuario debe tener entre 1-64 caracteres.');
+                if(this.editedItem.email){
+                    if(this.editedItem.nombre.length>50){
+                        this.validaMensaje.push('El email del usuario debe tener más de 50 caracteres.');
+                    }
                 }
                 if (this.validaMensaje.length){
                     this.valida=1;
@@ -343,18 +309,17 @@ import axios from 'axios';
                     return;
                 }
                 if (this.editedIndex > -1) {
-                    // Edita Usuario
-                    axios.put('usuario/update',
-                        {
+                    // Edita Cliente
+                    axios.put('persona/update',
+                        {   
                             '_id':this.editedItem._id,
-                            'rol':this.editedItem.rol,
+                            'tipo_persona':this.editedItem.tipo_persona,
                             'nombre':this.editedItem.nombre,
                             'tipo_documento':this.editedItem.tipo_documento,
                             'num_documento':this.editedItem.num_documento,
                             'direccion':this.editedItem.direccion,
                             'telefono': this.editedItem.telefono,
                             'email':this.editedItem.email,
-                            'password':this.editedItem.password
                         },
                         configuracion)
                         .then( response => {
@@ -369,19 +334,16 @@ import axios from 'axios';
                             console.log(error);
                         });
                 } else {
-                    // Guarda nueva Usuario
-                    console.log(this.editedItem);
-                    axios.post('usuario/add', 
+                    // Guarda nuevo Cliente
+                    axios.post('persona/add', 
                             {
-                                '_id':this.editedItem._id,
-                                'rol':this.editedItem.rol,
+                                'tipo_persona':this.editedItem.tipo_persona,
                                 'nombre':this.editedItem.nombre,
                                 'tipo_documento':this.editedItem.tipo_documento,
                                 'num_documento':this.editedItem.num_documento,
                                 'direccion':this.editedItem.direccion,
                                 'telefono': this.editedItem.telefono,
                                 'email':this.editedItem.email,
-                                'password':this.editedItem.password
                             }
                             ,configuracion)
                         .then( response => {
@@ -395,9 +357,9 @@ import axios from 'axios';
                 }
             },
             editItem (item) {
-                this.editedIndex = this.usuarios.indexOf(item)
+                this.editedIndex = this.personas.indexOf(item)
                 this.editedItem = Object.assign({}, item)
-                console.log(this.editedItem)
+                this.editedItem.tipo_persona = 'Cliente';
                 this.dialog = true
             },
             activarDesactivarMostrar(cod, item){
@@ -412,7 +374,7 @@ import axios from 'axios';
                     let me = this;
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
-                    axios.put('usuario/activate', {'_id':this.adId}, configuracion)
+                    axios.put('persona/activate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
@@ -430,7 +392,7 @@ import axios from 'axios';
                     let me = this;
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
-                    axios.put('usuario/deactivate', {'_id':this.adId}, configuracion)
+                    axios.put('persona/deactivate', {'_id':this.adId}, configuracion)
                         .then(function(response){
                         //console.log(response.data);
                         me.editedItem = Object.assign({}, response.data );
