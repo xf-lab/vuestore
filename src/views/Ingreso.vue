@@ -120,13 +120,18 @@
                         </v-text-field>
                     </v-flex>
                     <v-flex xs12 sm8 md8 lg8 x8>
-                        <v-text-field v-model="codigo" label="Código" >
+                        <v-text-field v-model="codigo" label="Código" @keyup.enter="buscaCodigo">
                         </v-text-field>
                     </v-flex>
                     <v-flex xs12 sm2 md2 lg2 xl2>
                         <v-btn small fab dark color="teal" >
                             <v-icon dark>list</v-icon>
                         </v-btn>
+                    </v-flex>
+                    <v-flex xs12 sm2 md2 lg2 xl2 v-show="errorArticulo">
+                        <div class="red--text" v-text="errorArticulo">
+
+                        </div>
                     </v-flex>
                     <v-flex xs12 sm12 md12 lg12 xl12>
                         <template>
@@ -142,8 +147,8 @@
                                            <v-icon>delete</v-icon>
                                         </td>
                                         <td class="text-xs-center">{{ props.item.articulo }}</td>
-                                        <td class="text-xs-center"><v-text-field v-model="props.item.cantidad" type="number"></v-text-field></td>
-                                        <td class="text-xs-center"><v-text-field v-model="props.item.precio" type="number"></v-text-field></td>
+                                        <td class="text-xs-center"><v-text-field v-model="props.item.cantidad"></v-text-field></td>
+                                        <td class="text-xs-center"><v-text-field v-model="props.item.precio"></v-text-field></td>
                                         <td class="text-xs-right">$ {{ props.item.cantidad * props.item.precio}}</td>
                                     </tr>
                                 </template>
@@ -155,7 +160,7 @@
                     </v-flex>
                     <v-flex xs12 sm12 md12 v-show="valida">
                         <div class="red--text" v-for="v in validaMensaje" :key="v" v-text="v">
-
+                            
                         </div>
                     </v-flex>  
                     <v-flex xs12 sm12 md12 lg12 xl12 d-flex mt-4 style="justify-content: space-evenly;">
@@ -199,8 +204,6 @@ import axios from 'axios';
                 nuevoIngreso: false,
                 dialog: false,
                 search:'',
-                ingresos: [],
-                detalles: [],
                 headers: [
                     { text: 'Opciones', value: 'opciones', sortable: false },
                     { text: 'Usuario', value: 'usuario.nombre', sortable: true },
@@ -234,9 +237,12 @@ import axios from 'axios';
                     },
                 comprobantes: ['Factura', 'Ticket'],
                 usuarios: [],
-                personas: [], 
-                codigo: '',
+                personas: [],
+                ingresos: [],
+                detalles: [], 
                 articulos: [],
+                codigo: '',
+                errorArticulo:null,
                 valida:0,
                 validaMensaje:[],
                 adModal:0,
@@ -262,12 +268,45 @@ import axios from 'axios';
             this.listar();
         },
         methods: {
-            // buscarCodigo(){
-
-            // },
-            // mostrarModalArticulos(){
-
-            // },
+            buscaCodigo(){
+                let me = this;
+                me.errorArticulo=null;
+                let header = { "Token" : this.$store.state.token};
+                let configuracion = {headers: header};
+                axios.get('articulo/queryCodigo?codigo='+this.codigo ,configuracion).then(function (response){
+                    console.log(response.data);
+                    me.agregarDetalle(response.data);
+                }).catch(function(error){
+                    console.log(error);
+                    me.errorArticulo='No existe el artículo.';
+                });
+            },
+            agregarDetalle(data){
+                this.errorArticulo=null;
+                if (this.encuentra(data._id)==true){
+                    this.errorArticulo='El artículo ya ha sido agregado.';
+                }
+                else{
+                    this.detalles.push(
+                        {
+                            '_id': data._id,
+                            'articulo' : data.nombre, 
+                            'cantidad':1, 
+                            'precio': data.precio_venta
+                        }
+                    );
+                    this.codigo='';
+                }
+            },
+            encuentra(id){
+                let sw=0;
+                for (var i=0;i<this.detalles.length;i++){
+                    if(this.detalles[i]._id==id){
+                        sw=true;
+                    }
+                }
+                return sw;
+            },
             mostrarNuevo(){
                 this.nuevoIngreso = true;
             },
@@ -279,7 +318,7 @@ import axios from 'axios';
                 axios.get('articulo/list',configuracion).then(function (response){
                     articulosArray=response.data;
                     articulosArray.map(function(x){
-                        me.detalles.push({articulo:x.nombre, cantidad: x.stock, precio: x.precio_venta});
+                        me.articulos.push({articulo:x.nombre, cantidad: x.stock, precio: x.precio_venta});
                     });
                 }).catch(function(error){
                     console.log(error);
