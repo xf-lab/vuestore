@@ -144,7 +144,7 @@
                                 <template v-slot:item="props">
                                     <tr>
                                         <td>
-                                           <v-icon>delete</v-icon>
+                                           <v-icon @click="borrarItemDetalle(detalles,props.item)">delete</v-icon>
                                         </td>
                                         <td class="text-xs-center">{{ props.item.articulo }}</td>
                                         <td class="text-xs-center"><v-text-field v-model="props.item.cantidad"></v-text-field></td>
@@ -306,6 +306,12 @@ import axios from 'axios';
                     }
                 }
                 return sw;
+            },
+            borrarItemDetalle(arr,item){
+                //console.log(arr.indexOf(item));
+                this.detalles.splice(arr.indexOf(item),1);
+                //this.editedIndex = this.detalles.indexOf(item)
+                //this.editedItem = Object.assign({}, item)
             },
             mostrarNuevo(){
                 this.nuevoIngreso = true;
