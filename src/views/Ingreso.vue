@@ -308,10 +308,7 @@ import axios from 'axios';
                 return sw;
             },
             borrarItemDetalle(arr,item){
-                //console.log(arr.indexOf(item));
                 this.detalles.splice(arr.indexOf(item),1);
-                //this.editedIndex = this.detalles.indexOf(item)
-                //this.editedItem = Object.assign({}, item)
             },
             mostrarNuevo(){
                 this.nuevoIngreso = true;
