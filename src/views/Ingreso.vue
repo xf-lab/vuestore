@@ -12,7 +12,7 @@
                 <v-text-field class="text-xs-center" v-model="search" append-icon="search" v-if="!nuevoIngreso"
                 label="Búsqueda" single-line hide-details></v-text-field>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" v-if="nuevoIngreso==0" @click="mostrarNuevo()" dark class="mb-2">Nuevo Ingreso</v-btn>
+                <v-btn color="primary" v-if="nuevoIngreso==0" @click="mostrarNuevo()" dark class="mb-2">Nuevo</v-btn>
                 <v-dialog v-model="adModal" max-width="290">
                     <v-card>
                         <v-card-title class="headline" v-if="adAction==1">
@@ -149,13 +149,24 @@
                                         <td class="text-xs-center">{{ props.item.articulo }}</td>
                                         <td class="text-xs-center"><v-text-field v-model="props.item.cantidad"></v-text-field></td>
                                         <td class="text-xs-center"><v-text-field v-model="props.item.precio"></v-text-field></td>
-                                        <td class="text-xs-right">$ {{ props.item.cantidad * props.item.precio}}</td>
+                                        <td class="text-xs-right"> {{ props.item.cantidad * props.item.precio}} €</td>
                                     </tr>
                                 </template>
                                 <template slot="no-data">
                                     <h3>No hay artículos agregados al detalle.</h3>
                                 </template>
                             </v-data-table>
+                            <v-flex class="text-xs-right">
+                                <strong>Total sin impuestos:</strong> 
+                                {{ totalNeto = (total-totalIVA).toFixed(2) }} €
+                            </v-flex>
+                            <v-flex class="text-xs-right">
+                                <strong>Total impuesto:</strong>
+                                {{ totalIVA = (((total)/(1+editedItem.impuesto))*(editedItem.impuesto)).toFixed(2) }} €
+                            </v-flex>
+                            <v-flex class="text-xs-right">
+                                <strong>Total:</strong> {{ total = calcularTotal }} €
+                            </v-flex>
                         </template>
                     </v-flex>
                     <v-flex xs12 sm12 md12 v-show="valida">
@@ -232,7 +243,7 @@ import axios from 'axios';
                         serie_comprobante: '',
                         tipo_documento: '',
                         num_comprobante: '',
-                        impuesto: 21,
+                        impuesto: 0.21,
                         total: '',
                     },
                 comprobantes: ['Factura', 'Ticket'],
@@ -242,6 +253,9 @@ import axios from 'axios';
                 detalles: [], 
                 articulos: [],
                 codigo: '',
+                total: 0,
+                totalIVA:0,
+                totalNeto:0,
                 errorArticulo:null,
                 valida:0,
                 validaMensaje:[],
@@ -255,6 +269,15 @@ import axios from 'axios';
         computed: {
             formTitle () {
                 return this.editedIndex === -1 ? 'Nuevo Usuario' : 'Editar Usuario'
+            },
+            calcularTotal(){
+                let suma=0;
+                let total=0;
+                this.detalles.map( function(x) {
+                    suma = x.precio * x.cantidad;
+                    total += suma;
+                });
+                return total;            
             }
         },
         watch: {
@@ -443,8 +466,6 @@ import axios from 'axios';
                 this.dialog = true
             },
             activarDesactivarMostrar(cod, item){
-                //console.log(cod);
-                //console.log(item);
                 this.adAction = cod ; 
                 this.adModal = 1;
                 this.adNombre = item.nombre;
