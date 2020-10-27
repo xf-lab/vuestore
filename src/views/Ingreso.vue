@@ -71,27 +71,19 @@
                 <v-dialog v-model="adModal" max-width="290">
                     <v-card>
                         <v-card-title class="headline" v-if="adAction==1">
-                            Activar Registro
-                        </v-card-title>
-                        <v-card-title class="headline" v-if="adAction==2">
-                            Desactivar Registro
+                            Anular Ingreso
                         </v-card-title>
                         <v-card-text>
-                            ¿Está seguro de que quieres 
-                            <span v-if="adAction==1">activar</span>
-                            <span v-if="adAction==2">desactivar</span>
-                             el usuario {{adNombre}} ?
+                            ¿Está seguro de que quieres anular
+                            el este ingreso ?
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn @click="cerrarModalActDes" color="green darken-1">
                                 Cancelar
                             </v-btn>
-                            <v-btn v-if="adAction == 1" @click="activarRegistro" color="orange darken-4">
-                                Activar
-                            </v-btn>
-                            <v-btn v-if="adAction == 2" @click="desactivarRegistro" color="orange darken-4">
-                                Desactivar
+                            <v-btn v-if="adAction == 1" @click="anularIngreso" color="orange darken-4">
+                                Anular
                             </v-btn>
                         </v-card-actions>
                     </v-card>
@@ -108,24 +100,16 @@
                     <tr>
                         <td>
                             <v-icon 
-                                @click="editItem(props.item)"
+                                @click="editarIngreso(props.item)"
                                 class="mr-2"
-                            >edit
+                            >remove_red_eye
                             </v-icon>
                             <template v-if="props.item.estado">
                                 <v-icon
                                 small
-                                @click="activarDesactivarMostrar(2,props.item)"
-                                >
-                                block
-                                </v-icon>
-                            </template>
-                            <template v-else>
-                                <v-icon
-                                small
                                 @click="activarDesactivarMostrar(1,props.item)"
                                 >
-                                check
+                                block
                                 </v-icon>
                             </template>
                         </td>
@@ -231,7 +215,7 @@
                     </v-flex>  
                     <v-flex xs12 sm12 md12 lg12 xl12 d-flex mt-4 style="justify-content: space-evenly;">
                         <v-btn color="blue darken-1" @click="cierraNuevoIngreso">Cancelar</v-btn>
-                        <v-btn color="success" @click="guardarIngreso" >Guardar</v-btn>
+                        <v-btn color="success" @click="guardarIngreso" v-if="!editItem">Guardar</v-btn>
                     </v-flex>
                 </v-layout>
             </v-container>
@@ -302,7 +286,8 @@ import axios from 'axios';
                 adModal:0,
                 adAction:0,
                 adNombre:'',
-                adId:''              
+                adId:'',
+                editItem: false,            
             }
         },
         computed: {
@@ -378,7 +363,6 @@ import axios from 'axios';
                 let header = { "Token" : this.$store.state.token};
                 let configuracion = {headers: header};
                 axios.get('articulo/list?valor='+this.textoBusqueda,configuracion).then(function (response){
-                    //console.log(me.articulos);
                     me.articulos=response.data;
                 }).catch(function(error){
                     console.log(error);
@@ -403,7 +387,6 @@ import axios from 'axios';
                 let header = { "Token" : this.$store.state.token};
                 let configuracion = {headers: header};
                 axios.get('ingreso/list', configuracion).then(function (response){
-                    //console.log(response);
                     me.ingresos = response.data;
                 }).catch(function(error){
                     console.log(error);
@@ -469,7 +452,6 @@ import axios from 'axios';
                         }
                         ,configuracion)
                     .then( response => {
-                        console.log(response.data)
                         me.limpiar();
                         me.cierraNuevoIngreso();
                         me.listar();
@@ -478,38 +460,35 @@ import axios from 'axios';
                         console.log(error);
                     });
             },
+            editarIngreso(item){
+                this.editItem = true;
+                this.nuevoIngreso = true;
+                this.editedItem = Object.assign({}, item);
+                this.editedItem.persona = {text:item.persona.nombre, value: item.persona._id};
+                item.detalles.map( v => { 
+                    this.detalles.push(
+                        {
+                            '_id': v._id,
+                            'articulo' : v.articulo, 
+                            'cantidad': v.cantidad, 
+                            'precio': v.precio
+                        }
+                    )
+                });
+            },
             activarDesactivarMostrar(cod, item){
                 this.adAction = cod ; 
                 this.adModal = 1;
                 this.adNombre = item.nombre;
                 this.adId = item._id;
             },
-            activarRegistro(){
+            anularIngreso(){
                     let me = this;
                     let header = { "Token" : this.$store.state.token};
                     let configuracion = {headers: header};
-                    axios.put('usuario/activate', {'_id':this.adId}, configuracion)
+                    axios.put('ingreso/deactivate', {'_id':this.adId}, configuracion)
                         .then(function(response){
-                        //console.log(response.data);
-                        me.editedItem = Object.assign({}, response.data );
-                        me.listar();
-                        me.cerrarModalActDes();
-                        me.adAction = 0;
-                        me.adNombre = '';
-                        me.adId = ''
-                    })
-                    .catch(function(error){
-                        console.log(error);
-                    });
-            },
-            desactivarRegistro(){
-                    let me = this;
-                    let header = { "Token" : this.$store.state.token};
-                    let configuracion = {headers: header};
-                    axios.put('usuario/deactivate', {'_id':this.adId}, configuracion)
-                        .then(function(response){
-                        //console.log(response.data);
-                        me.editedItem = Object.assign({}, response.data );
+                        me.editedItem.estado = response.data.estado;
                         me.listar();
                         me.cerrarModalActDes();
                         me.adAction = 0;
@@ -528,6 +507,8 @@ import axios from 'axios';
             },
             cierraNuevoIngreso(){
                 this.nuevoIngreso = false;
+                this.editItem = false;
+                this.limpiar();
             }
         }
     }
