@@ -8,6 +8,7 @@ import Usuario from './views/Usuario.vue'
 import Cliente from './views/Cliente.vue'
 import Proveedor from './views/Proveedor.vue'
 import Ingreso from './views/Ingreso.vue'
+import Venta from './views/Venta.vue'
 import Articulo from './views/Articulo.vue'
 
 Vue.use(Router)
@@ -94,6 +95,17 @@ var router = new Router({
         visible: true,
         administrador: true,
         Almacenero: true
+      }
+    },
+    {
+      path: "/venta",
+      name: "ventas",
+      component: Venta,
+      meta: {
+        libre: true,
+        visible: true,
+        administrador: true,
+        Vendedor: true
       }
     },
     {
